@@ -3142,6 +3142,16 @@
 			)
 		)
 	)
+	(gr_line
+		(start 155.702 94.234)
+		(end 156.464 93.472)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "B.SilkS")
+		(uuid "0338b2ce-841b-4439-82db-39f4ec8072c5")
+	)
 	(gr_poly
 		(pts
 			(xy 161.727975 78.410473) (xy 161.81758 78.417299) (xy 161.905854 78.428537) (xy 161.992691 78.444074)
@@ -3372,6 +3382,16 @@
 		(layer "B.SilkS")
 		(uuid "4a347dfa-65ef-49db-bb81-19f3534dcd9b")
 	)
+	(gr_line
+		(start 155.448 93.98)
+		(end 155.448 94.488)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "B.SilkS")
+		(uuid "7f4e3b67-f098-4970-b4d3-49cd7b7c0ec3")
+	)
 	(gr_poly
 		(pts
 			(xy 160.782 86.106) (xy 160.78424 86.127658) (xy 160.787874 86.148204) (xy 160.792826 86.167679)
@@ -3433,6 +3453,16 @@
 		(fill yes)
 		(layer "B.SilkS")
 		(uuid "7f93e254-83b4-4327-a639-976b41d73455")
+	)
+	(gr_line
+		(start 155.448 94.488)
+		(end 155.956 94.488)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "B.SilkS")
+		(uuid "87143037-6f2c-4d7d-888e-be20fdf86787")
 	)
 	(gr_poly
 		(pts
@@ -3579,6 +3609,16 @@
 		(layer "B.SilkS")
 		(uuid "b65d634e-2eaf-460b-a439-752822b58ed0")
 	)
+	(gr_line
+		(start 156.464 93.472)
+		(end 155.448 94.488)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "B.SilkS")
+		(uuid "c9846b9f-e7a0-4de2-92a3-96684ead5f63")
+	)
 	(gr_arc
 		(start 152.654 73.152)
 		(mid 153.100369 72.074369)
@@ -3674,6 +3714,18 @@
 				(thickness 0.2)
 			)
 			(justify top)
+		)
+	)
+	(gr_text "D2 DCC input"
+		(at 161.798 92.964 0)
+		(layer "B.SilkS")
+		(uuid "05ff4a1a-5a22-4c8d-b6a5-d845fcf8d7f9")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+			(justify mirror)
 		)
 	)
 	(gr_text "Arduino Nano\nshield"
