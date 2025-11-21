@@ -157,6 +157,145 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:C"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "C_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762) (xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762) (xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:LED"
 			(pin_numbers
 				(hide yes)
@@ -2172,6 +2311,12 @@
 		(uuid "2f2aec98-e0a8-4dd9-8554-36d7d58e8272")
 	)
 	(junction
+		(at 93.98 24.13)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "3b12002c-cc3c-4f5b-bd2f-831a14e6fd8e")
+	)
+	(junction
 		(at 118.11 57.15)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2523,6 +2668,16 @@
 	)
 	(wire
 		(pts
+			(xy 88.9 24.13) (xy 88.9 34.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "75731f61-2142-443d-afab-6208b5b6a863")
+	)
+	(wire
+		(pts
 			(xy 48.26 104.14) (xy 48.26 59.69)
 		)
 		(stroke
@@ -2560,6 +2715,16 @@
 			(type default)
 		)
 		(uuid "92c8cbbb-25f3-4ccf-b310-b0e2070a4114")
+	)
+	(wire
+		(pts
+			(xy 93.98 24.13) (xy 88.9 24.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "92f469c9-e9e9-46e6-a7af-4043f46e63c0")
 	)
 	(wire
 		(pts
@@ -2819,7 +2984,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5d13026d-11d0-4453-8e03-c5952b3b91c0")
-		(property "Reference" "D1"
+		(property "Reference" "D3"
 			(at 57.15 91.44 90)
 			(effects
 				(font
@@ -2882,7 +3047,7 @@
 		(instances
 			(project ""
 				(path "/4adb1040-e115-4483-a004-02188402dddd"
-					(reference "D1")
+					(reference "D3")
 					(unit 1)
 				)
 			)
@@ -3106,7 +3271,7 @@
 		(lib_id "Graphic:Logo_Open_Hardware_Small")
 		(at 73.66 119.38 0)
 		(unit 1)
-		(exclude_from_sim no)
+		(exclude_from_sim yes)
 		(in_bom no)
 		(on_board no)
 		(dnp no)
@@ -3149,15 +3314,6 @@
 			)
 		)
 		(property "Description" "Open Hardware logo, small"
-			(at 73.66 119.38 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Sim.Enable" "0"
 			(at 73.66 119.38 0)
 			(effects
 				(font
@@ -3489,6 +3645,72 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 88.9 41.91 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9f2c1f15-e53e-4aa3-b1b8-b015b09317fb")
+		(property "Reference" "#PWR03"
+			(at 88.9 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 88.9 46.0431 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 88.9 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 88.9 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 88.9 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ba1c839b-267d-47e9-af03-d9b024f5ec87")
+		)
+		(instances
+			(project "dcc-sniffer-arduino-shield"
+				(path "/4adb1040-e115-4483-a004-02188402dddd"
+					(reference "#PWR03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 125.73 88.9 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -3621,8 +3843,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x02")
-		(at 33.02 54.61 0)
-		(mirror y)
+		(at 33.02 57.15 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3630,7 +3851,7 @@
 		(dnp no)
 		(uuid "e200ba82-b65c-41a6-a25e-7a700a80096a")
 		(property "Reference" "J1"
-			(at 33.655 48.3757 0)
+			(at 33.02 48.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3646,7 +3867,7 @@
 			)
 		)
 		(property "Footprint" "TerminalBlock_4Ucon:TerminalBlock_4Ucon_1x02_P3.50mm_Horizontal"
-			(at 33.02 54.61 0)
+			(at 33.02 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3655,7 +3876,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 33.02 54.61 0)
+			(at 33.02 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3664,7 +3885,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 33.02 54.61 0)
+			(at 33.02 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3682,6 +3903,76 @@
 			(project "dcc-sniffer-arduino-shield"
 				(path "/4adb1040-e115-4483-a004-02188402dddd"
 					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 88.9 38.1 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f4942877-1ee4-4dca-a6a5-a3a1c9264b09")
+		(property "Reference" "C1"
+			(at 85.979 36.8878 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 85.979 39.3121 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
+			(at 87.9348 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 88.9 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 88.9 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "5fb513ca-ffa4-4aa4-bfdb-6adae76df715")
+		)
+		(pin "1"
+			(uuid "ac2b5ebe-3ac7-43ed-8d1f-d176712c59e6")
+		)
+		(instances
+			(project ""
+				(path "/4adb1040-e115-4483-a004-02188402dddd"
+					(reference "C1")
 					(unit 1)
 				)
 			)

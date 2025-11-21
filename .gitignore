@@ -11,3 +11,4 @@ fab
 *-cache*
 panel.*
 *-bak
+*.lck
