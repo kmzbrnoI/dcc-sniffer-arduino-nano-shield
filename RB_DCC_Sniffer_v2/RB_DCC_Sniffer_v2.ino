@@ -4,7 +4,7 @@
 // DCC packet capture: Robin McKay, March 2014
 // -------------------------------------------------------
 // Version 2.0: Jürgen Winkler, March 2016
-// - improve accessory decoder packet handling 
+// - improve accessory decoder packet handling
 // - improve detection of repeated = same packets
 // - corrected display of on/off for basic accessory decoder packets
 // - add hexdecimal output format for packets
@@ -21,7 +21,7 @@
 // Klávesové příkazy, které mohou být zadány přes Serial Monitor:
 //
 // 1 = 1s refresh time - čas obnovy
-// 2 = 2s 
+// 2 = 2s
 // 3 = 4s (default)
 // 4 = 8s
 // 5 = 16s
@@ -49,7 +49,7 @@ boolean packetEnd;
 boolean preambleFound;
 
 const byte bitBufSize = 50; // number of slots for bits
-volatile byte bitBuffer[bitBufSize]; 
+volatile byte bitBuffer[bitBufSize];
 volatile byte bitBuffHead = 1;
 volatile byte bitBuffTail = 0;
 
@@ -103,7 +103,7 @@ void checkForPreamble() {
 void getNextByte() {
   byte newByte = 0;
   for (byte n = 0; n < 8; n++) newByte = (newByte << 1) + getBit();
-  packetBytesCount ++;  
+  packetBytesCount ++;
   dccPacket[packetBytesCount] = newByte;
   dccPacket[0] = packetBytesCount;
   if (getBit() == 1) packetEnd = true;
@@ -138,7 +138,7 @@ void startTimer() {
 //========================
 
 ISR(TIMER0_COMPB_vect) {
-  byte bitFound = ! ((PIND & B00000100) >> 2); 
+  byte bitFound = ! ((PIND & B00000100) >> 2);
   TIMSK0 &= B11111011;
   byte nbs = nextBitSlot(bitBuffHead);
   if (nbs == bitBuffTail) return;
@@ -162,14 +162,14 @@ void printPacket() {
   // changed V2.0: show binary output is optional now
   if (showBin || showHex) {
     Serial.print(" Data");
-  }    
-  if (showBin) {        
+  }
+  if (showBin) {
     for (byte n=1; n<pktByteCount; n++) {
       Serial.print(" ");
       Serial.print(dccPacket[n],BIN);
     }
   }
-  
+
   // --------------------added V2.0: begin ----------------
   // optionally show hexadecimal output now
   if (showHex) {
@@ -180,7 +180,7 @@ void printPacket() {
     }
   }
   // --------------------added V2.0: end ----------------
-  
+
   Serial.println();
 }
 
@@ -252,9 +252,9 @@ void loop() {
   byte speed;
   byte checksum = 0;
   unsigned long packetHash = 0;      // added V2.0
-  
+
   if (millis() > timeToRefresh) refreshBuffer();
-  
+
 /* Dummy packet for test purposes. Comment when on DCC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Loc 1782 CV Write 3 128
 dccPacket[0]=6;
@@ -264,30 +264,30 @@ dccPacket[3]=B11101100;
 dccPacket[4]=B00000011;
 dccPacket[5]=B10000000;
 dccPacket[6]=B11111111;
-*/  
-  checkUserInput();    // changed v2.0: check user input anyway, also on idle packet and with packet having checksum error 
-  
+*/
+  checkUserInput();    // changed v2.0: check user input anyway, also on idle packet and with packet having checksum error
+
   pktByteCount = dccPacket[0];
   if (!pktByteCount) return; // No new packet available
 
   for (byte n = 1; n <= pktByteCount; n++) checksum ^= dccPacket[n];
   //checksum=0; //Comment this line when on DCC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if (checksum) return; // Invalid Checksum
-  
+
   // There is a new packet with a correct checksum
   isDifferentPacket=1;
-  
+
 
   // --------------------added V2.0: begin ----------------
-  //  generate a packet hash 
+  //  generate a packet hash
   // the hash is build from the first three byte and the packet checksum
   for (byte n=1; n<=min(3,pktByteCount); n++) {
      packetHash = (packetHash << 8) + dccPacket[n];
   }
   packetHash = (packetHash << 8) + dccPacket[pktByteCount];
   // --------------------added V2.0: end -----------------
-  
-  for (byte n=0; n<packetBufferSize ; n++) {// Check if packet is not already in the buffer. 
+
+  for (byte n=0; n<packetBufferSize ; n++) {// Check if packet is not already in the buffer.
     if (packetHash==packetBuffer[n]) isDifferentPacket=0;     // changed V2.0: find the hash in the buffer
   }
 
@@ -299,7 +299,7 @@ dccPacket[6]=B11111111;
         if (showIdle) Serial.println("Idle ");
         return;
       }
-    
+
       if (!bitRead(dccPacket[1],7)) { //bit7=0 -> Loc Decoder Short Address
         decoderAddress = dccPacket[1];
         instrByte1 = dccPacket[2];
@@ -333,22 +333,22 @@ dccPacket[6]=B11111111;
               Serial.print(bitRead(instrByte1,0));
               if (bitRead(instrByte1,3)) Serial.print(" On");  // changes V2.0 bits 3 is used to activate or deactivate the port
               else Serial.print(" Off");
-            } 
+            }
             // --------------------added V2.0: begin ----------------
-            // handle decoder CV access 
+            // handle decoder CV access
             else if (pktByteCount==5 && (dccPacket[2]&B10001100)==B00001100) {  // Accessory decoder Configuration variable Instruction - backward compatibility
               Serial.print(" CV ");
               int cvAddress = 1 + dccPacket[3] + (dccPacket[2]&B00000011)*256;
               byte cvValue = dccPacket[4];
               displayCV(3, cvAddress, cvValue);
-            } 
+            }
             else if (pktByteCount==6 && (dccPacket[3]&B11110000)==B11100000) {  // Accessory decoder Configuration variable Instruction
               Serial.print(" CV ");
               byte cvMode = (dccPacket[3]&B00001100)>>2;
               int cvAddress = 1 + dccPacket[4] + (dccPacket[3]&B00000011)*256;
               byte cvValue = dccPacket[5];
               displayCV(cvMode, cvAddress, cvValue);
-            } 
+            }
             else {
               Serial.print(" unknown ");
             }
@@ -505,7 +505,7 @@ void checkUserInput() {
     noInterrupts();            // changed V2: turn off interrupts, otherwise if serial.print last too long the app crashes
     Serial.println(" ");
     switch (Serial.read()) {
-      case 49: 
+      case 49:
         Serial.println(F("Refresh Time = 1s"));
         refreshTime=1;
       break;
@@ -583,11 +583,11 @@ void checkUserInput() {
         Serial.println(F("  8 = 16"));
         Serial.println(F("  9 = 32 (default)"));
         Serial.println(F("  0 = 64"));
-        Serial.println();  
+        Serial.println();
         Serial.println(F("  a = accessory packets display on / off toggle"));
-        Serial.println(F("  l = locomotive packets display on / off toggle"));     
-        Serial.println(F("  i = idle packet display on / off toggle"));     
-        Serial.println();  
+        Serial.println(F("  l = locomotive packets display on / off toggle"));
+        Serial.println(F("  i = idle packet display on / off toggle"));
+        Serial.println();
         Serial.println(F("  h = hexadecimal output of packet data on / off toggle"));
         Serial.println(F("  b = binary output of packet data on / off toggle"));
       }
