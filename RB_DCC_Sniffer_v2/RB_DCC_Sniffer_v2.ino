@@ -482,18 +482,6 @@ void checkUserInput() {
       break;
       case 63: // ? show help
         Serial.println(F("Available keyboard commands:"));
-        Serial.println(F("  1 = 1s refresh time"));
-        Serial.println(F("  2 = 2s"));
-        Serial.println(F("  3 = 4s (default)"));
-        Serial.println(F("  4 = 8s"));
-        Serial.println(F("  5 = 16s"));
-        Serial.println();
-        Serial.println(F("  6 = 4 DCC packet buffer size"));
-        Serial.println(F("  7 = 8"));
-        Serial.println(F("  8 = 16"));
-        Serial.println(F("  9 = 32 (default)"));
-        Serial.println(F("  0 = 64"));
-        Serial.println();
         Serial.println(F("  a = accessory packets display on / off toggle"));
         Serial.println(F("  l = locomotive packets display on / off toggle"));
         Serial.println(F("  i = idle packet display on / off toggle"));
