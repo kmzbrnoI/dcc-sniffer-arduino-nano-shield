@@ -52,9 +52,9 @@ byte showLoc=1;
 byte showAcc=1;
 
 // --------------------added V2.0: begin ----------------
-byte showIdle=1;
-byte showBin=1;
-byte showHex=0;
+byte showIdle=0;
+byte showBin=0;
+byte showHex=1;
 // --------------------added V2.0: end ----------------
 
 unsigned int decoderAddress;
