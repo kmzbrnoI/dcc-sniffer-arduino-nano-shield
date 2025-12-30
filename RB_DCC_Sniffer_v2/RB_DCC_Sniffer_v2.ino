@@ -432,6 +432,11 @@ dccPacket[6]=B11111111;
               break;
             }
           }
+          break;
+
+        default:
+          Serial.print(" unknown instruction type ");
+          Serial.println(instructionType);
         break;
       }
       printPacket();
