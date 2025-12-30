@@ -20,16 +20,6 @@
 // Keyboard commands that can be sent via Serial Monitor:
 // Klávesové příkazy, které mohou být zadány přes Serial Monitor:
 //
-// 1 = 1s refresh time - čas obnovy
-// 2 = 2s
-// 3 = 4s (default)
-// 4 = 8s
-// 5 = 16s
-// 6 = 4 DCC packet buffer - velikost zásobníku paketů
-// 7 = 8
-// 8 = 16
-// 9 = 32 (default)
-// 0 = 64
 // a = show accessory packets toggle - zobrazení paketů příslušenství (zapne/vypne)
 // l = show locomotive packets toggle - zobrazení paketů lokomotivy (zapne/vypne)
 // i = idle packet display on / off toggle - zobrazení idle paketů (zapne/vypne)
@@ -37,9 +27,6 @@
 // b = binary output of packet data on / off toggle - zobrazení paketů binárně (zapne/vypne)
 //
 ////////////////////////////////////////////////////////
-
-byte refreshTime = 1; // Time between DCC packets buffer refreshes in s
-byte packetBufferSize = 32; // DCC packets buffer size
 
 #define TIMER_PRESCALER 64
 #define DccBitTimerCount (F_CPU * 80L / TIMER_PRESCALER / 1000000L)
@@ -71,10 +58,6 @@ byte showHex=0;
 // --------------------added V2.0: end ----------------
 
 unsigned int decoderAddress;
-unsigned long packetBuffer[64];          // V2.0: changed from byte to long
-unsigned int packetNew=0;
-
-unsigned long timeToRefresh = millis() + refreshTime*1000;
 
 //========================
 
@@ -186,34 +169,10 @@ void printPacket() {
 
 //========================
 
-void refreshBuffer() {
-  timeToRefresh = millis() + refreshTime*1000;
-  for (byte n=0; n<packetBufferSize; n++) packetBuffer[n]=0;
-  bufferCounter=0;
-  Serial.println("-");
-  /*
-  Serial.print("Loc ");
-  Serial.print(showLoc);
-  Serial.print(" / Acc ");
-  Serial.print(showAcc);
-  Serial.print(" / Time ");
-  Serial.print(refreshTime);
-  Serial.print(" / Buff ");
-  Serial.println(packetBufferSize);
-  Serial.println(" ");
-  */
-
-}
-
-//========================
-
 void setup() {
   Serial.begin(115200); // 38400 when on DCC, 9600 when testing on 123Circuits !!!!!!!!!!!!!!!!!!!!!!!
   Serial.println(F("---"));
   Serial.println(F("DCC Packet Analyze V2.0 started"));
-  Serial.print(F("Updates every "));
-  Serial.print(refreshTime);
-  Serial.println(F(" seconds"));
   Serial.println(F("---"));
   Serial.println(F("press ? for help"));      // added V2.0
   beginBitDetection(); //Uncomment this line when on DCC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -253,8 +212,6 @@ void loop() {
   byte checksum = 0;
   unsigned long packetHash = 0;      // added V2.0
 
-  if (millis() > timeToRefresh) refreshBuffer();
-
 /* Dummy packet for test purposes. Comment when on DCC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Loc 1782 CV Write 3 128
 dccPacket[0]=6;
@@ -272,224 +229,212 @@ dccPacket[6]=B11111111;
 
   for (byte n = 1; n <= pktByteCount; n++) checksum ^= dccPacket[n];
   //checksum=0; //Comment this line when on DCC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  if (checksum) return; // Invalid Checksum
-
-  // There is a new packet with a correct checksum
-  isDifferentPacket=1;
-
-
-  // --------------------added V2.0: begin ----------------
-  //  generate a packet hash
-  // the hash is build from the first three byte and the packet checksum
-  for (byte n=1; n<=min(3,pktByteCount); n++) {
-     packetHash = (packetHash << 8) + dccPacket[n];
-  }
-  packetHash = (packetHash << 8) + dccPacket[pktByteCount];
-  // --------------------added V2.0: end -----------------
-
-  for (byte n=0; n<packetBufferSize ; n++) {// Check if packet is not already in the buffer.
-    if (packetHash==packetBuffer[n]) isDifferentPacket=0;     // changed V2.0: find the hash in the buffer
+  if (checksum) {
+    Serial.print(millis());
+    Serial.println(" Invalid checksum!");
+    return; // Invalid Checksum
   }
 
-  if (isDifferentPacket) {  // packet does not yet exist in the packet buffer
-    packetBuffer[bufferCounter] = packetHash; // add new packet to the buffer
-    bufferCounter = (++bufferCounter)&(packetBufferSize-1);
-
-    if (dccPacket[1]==B11111111) { //Idle packet
-      if (showIdle) Serial.println("Idle ");
-      return;
+  if (dccPacket[1]==B11111111) { //Idle packet
+    if (showIdle) {
+      Serial.print(millis());
+      Serial.println(" Idle ");
     }
+    return;
+  }
 
-    if (!bitRead(dccPacket[1],7)) { //bit7=0 -> Loc Decoder Short Address
-      decoderAddress = dccPacket[1];
-      instrByte1 = dccPacket[2];
+  if (!bitRead(dccPacket[1],7)) { //bit7=0 -> Loc Decoder Short Address
+    decoderAddress = dccPacket[1];
+    instrByte1 = dccPacket[2];
+    decoderType = 0;
+  }
+  else {
+    if (bitRead(dccPacket[1],6)) { //bit7=1 AND bit6=1 -> Loc Decoder Long Address
+      decoderAddress = 256 * (dccPacket[1] & B00111111) + dccPacket[2];
+      instrByte1 = dccPacket[3];
       decoderType = 0;
     }
-    else {
-      if (bitRead(dccPacket[1],6)) { //bit7=1 AND bit6=1 -> Loc Decoder Long Address
-        decoderAddress = 256 * (dccPacket[1] & B00111111) + dccPacket[2];
-        instrByte1 = dccPacket[3];
-        decoderType = 0;
-      }
-      else { //bit7=1 AND bit6=0 -> Accessory Decoder
-        decoderAddress = dccPacket[1]&B00111111;
-        instrByte1 = dccPacket[2];
-        decoderType = 1;
-      }
+    else { //bit7=1 AND bit6=0 -> Accessory Decoder
+      decoderAddress = dccPacket[1]&B00111111;
+      instrByte1 = dccPacket[2];
+      decoderType = 1;
     }
-    if (decoderType) { // Accessory Basic
-      if (showAcc) {
-        if (instrByte1&B10000000) { // Basic Accessory Decoder Packet Format
-          decoderAddress = (((~instrByte1)&B01110000)<<2) + decoderAddress;
-          byte port = (instrByte1&B00000110)>>1;
-          Serial.print("Acc ");
-          Serial.print((decoderAddress-1)*4 + port + 1);
-          Serial.print(" ");
-          Serial.print(decoderAddress);
-          Serial.print(":");
-          Serial.print(port);
-          if (pktByteCount==3) {  // Basic Accessory Decoder Packet Format
-            Serial.print(" output ");     // changes V2.0: bits 0 indicates which output of the pair is addresse
-            Serial.print(bitRead(instrByte1,0));
-            if (bitRead(instrByte1,3)) Serial.print(" On");  // changes V2.0 bits 3 is used to activate or deactivate the port
-            else Serial.print(" Off");
-          }
-          // --------------------added V2.0: begin ----------------
-          // handle decoder CV access
-          else if (pktByteCount==5 && (dccPacket[2]&B10001100)==B00001100) {  // Accessory decoder Configuration variable Instruction - backward compatibility
-            Serial.print(" CV ");
-            int cvAddress = 1 + dccPacket[3] + (dccPacket[2]&B00000011)*256;
-            byte cvValue = dccPacket[4];
-            displayCV(3, cvAddress, cvValue);
-          }
-          else if (pktByteCount==6 && (dccPacket[3]&B11110000)==B11100000) {  // Accessory decoder Configuration variable Instruction
-            Serial.print(" CV ");
-            byte cvMode = (dccPacket[3]&B00001100)>>2;
-            int cvAddress = 1 + dccPacket[4] + (dccPacket[3]&B00000011)*256;
-            byte cvValue = dccPacket[5];
-            displayCV(cvMode, cvAddress, cvValue);
-          }
-          else {
-            Serial.print(" unknown ");
-          }
-          // --------------------added V2.0: end ----------------
-        }
-        else { // Accessory Extended NMRA spec is not clear about address and instruction format !!!
-          Serial.print("Acc Ext ");
-          decoderAddress = (decoderAddress<<5) + ((instrByte1&B01110000)>>2) + ((instrByte1&B00000110)>>1);
-          Serial.print(decoderAddress);
-          Serial.print(" Asp ");
-          Serial.print(dccPacket[3],BIN);
-        }
-        printPacket();
-      }
-    }
-    else { // Loc / Multi Function Decoder
-      if (showLoc) {
-        Serial.print("Loc ");
+  }
+
+  if (decoderType) { // Accessory Basic
+    if (showAcc) {
+      if (instrByte1&B10000000) { // Basic Accessory Decoder Packet Format
+        decoderAddress = (((~instrByte1)&B01110000)<<2) + decoderAddress;
+        byte port = (instrByte1&B00000110)>>1;
+        Serial.print(millis());
+        Serial.print(" Acc ");
+        Serial.print((decoderAddress-1)*4 + port + 1);
+        Serial.print(" ");
         Serial.print(decoderAddress);
-        byte instructionType = instrByte1>>5;
-        switch (instructionType) {
-
-          case 0:
-            Serial.print(" Control ");
-          break;
-
-          case 1: // Advanced Operations
-            if (instrByte1==B00111111) { //128 speed steps
-              if (bitRead(dccPacket[pktByteCount-1],7)) Serial.print(" Forw128 ");
-              else Serial.print(" Rev128 ");
-              byte speed = dccPacket[pktByteCount-1]&B01111111;
-              if (!speed) Serial.print(" Stop ");
-              else if (speed==1) Serial.print(" E-stop ");
-              else Serial.print(speed-1);
-            }
-            else if (instrByte1==B00111110) { //Speed Restriction
-            if (bitRead(dccPacket[pktByteCount-1],7)) Serial.print(" On ");
-              else Serial.print(" Off ");
-              Serial.print(dccPacket[pktByteCount-1])&B01111111;
-            }
-          break;
-
-          case 2: // Reverse speed step
-            speed = ((instrByte1&B00001111)<<1) - 3 + bitRead(instrByte1,4);
-            if (speed==253 || speed==254) Serial.print(" Stop ");
-            else if (speed==255 || speed==0) Serial.print(" E-Stop ");
-            else {
-              Serial.print(" Rev ");
-              Serial.print(speed);
-            }
-          break;
-
-          case 3: // Forward speed step
-            speed = ((instrByte1&B00001111)<<1) - 3 + bitRead(instrByte1,4);
-            if (speed==253 || speed==254) Serial.print(" Stop ");
-            else if (speed==255 || speed==0) Serial.print(" E-Stop ");
-            else {
-              Serial.print(" Forw ");
-              Serial.print(speed);
-            }
-          break;
-
-          case 4: // Loc Function L-4-3-2-1
-            Serial.print(" L F4-F1 ");
-            Serial.print(instrByte1&B00011111,BIN);
-          break;
-
-          case 5: // Loc Function 8-7-6-5
-            if (bitRead(instrByte1,4)) {
-              Serial.print(" F8-F5 ");
-              Serial.print(instrByte1&B00001111,BIN);
-            }
-            else { // Loc Function 12-11-10-9
-              Serial.print(" F12-F9 ");
-              Serial.print(instrByte1&B00001111,BIN);
-            }
-          break;
-
-          case 6: // Future Expansions
-            switch (instrByte1&B00011111) {
-              case 0: // Binary State Control Instruction long form
-                Serial.print(" BinStateLong ");
-                Serial.print(256 * dccPacket[pktByteCount-1] + (dccPacket[pktByteCount-2]&B01111111));
-                if bitRead(dccPacket[pktByteCount-2],7) Serial.print(" On ");
-                else Serial.print(" Off ");
-              break;
-              case B00011101: // Binary State Control
-                Serial.print(" BinStateShort ");
-                Serial.print(dccPacket[pktByteCount-1]&B01111111);
-                if bitRead(dccPacket[pktByteCount-1],7) Serial.print(" On ");
-                else Serial.print(" Off ");
-              break;
-              case B00011110: // F13-F20 Function Control
-                Serial.print(" F20-F13 ");
-                Serial.print(dccPacket[pktByteCount-1],BIN);
-              break;
-              case B00011111: // F21-F28 Function Control
-                Serial.print(" F28-F21 ");
-                Serial.print(dccPacket[pktByteCount-1],BIN);
-              break;
-            }
-          break;
-
-          case 7:
-            Serial.print(" CV ");
-            if (instrByte1&B00010000) { // CV Short Form
-              byte cvType=instrByte1&B00001111;
-              switch (cvType) {
-                case B00000010:
-                  Serial.print("23 ");
-                  Serial.print(dccPacket[pktByteCount-1]);
-                break;
-                case B00000011:
-                  Serial.print("24 ");
-                  Serial.print(dccPacket[pktByteCount-1]);
-                break;
-                case B00001001:
-                  Serial.print("Decoder Lock ");
-                  Serial.print(dccPacket[pktByteCount-1]);
-                break;
-              }
-            }
-            else { // CV Long Form
-              int cvAddress = 256 * (instrByte1&B00000011) + dccPacket[pktByteCount-2] + 1;
-              byte cvMode = (instrByte1&B00001100)>>2;
-              byte cvData = dccPacket[pktByteCount-1];
-              switch (cvMode) {
-                case 1: // Verify Byte
-                case 3: // Write Byte
-                  displayCV(cvMode, cvAddress, cvData);
-                break;
-                case 2: // Bit Write
-                  if (dccPacket[pktByteCount-2]&B00010000) displayCV(11, cvAddress, cvData); // bit verify
-                  else displayCV(11, cvAddress, cvData); // bit write
-                break;
-              }
-            }
-          break;
+        Serial.print(":");
+        Serial.print(port);
+        if (pktByteCount==3) {  // Basic Accessory Decoder Packet Format
+          Serial.print(" output ");     // changes V2.0: bits 0 indicates which output of the pair is addresse
+          Serial.print(bitRead(instrByte1,0));
+          if (bitRead(instrByte1,3)) Serial.print(" On");  // changes V2.0 bits 3 is used to activate or deactivate the port
+          else Serial.print(" Off");
         }
-        printPacket();
+        // --------------------added V2.0: begin ----------------
+        // handle decoder CV access
+        else if (pktByteCount==5 && (dccPacket[2]&B10001100)==B00001100) {  // Accessory decoder Configuration variable Instruction - backward compatibility
+          Serial.print(" CV ");
+          int cvAddress = 1 + dccPacket[3] + (dccPacket[2]&B00000011)*256;
+          byte cvValue = dccPacket[4];
+          displayCV(3, cvAddress, cvValue);
+        }
+        else if (pktByteCount==6 && (dccPacket[3]&B11110000)==B11100000) {  // Accessory decoder Configuration variable Instruction
+          Serial.print(" CV ");
+          byte cvMode = (dccPacket[3]&B00001100)>>2;
+          int cvAddress = 1 + dccPacket[4] + (dccPacket[3]&B00000011)*256;
+          byte cvValue = dccPacket[5];
+          displayCV(cvMode, cvAddress, cvValue);
+        }
+        else {
+          Serial.print(" unknown ");
+        }
+        // --------------------added V2.0: end ----------------
       }
+      else { // Accessory Extended NMRA spec is not clear about address and instruction format !!!
+        Serial.print("Acc Ext ");
+        decoderAddress = (decoderAddress<<5) + ((instrByte1&B01110000)>>2) + ((instrByte1&B00000110)>>1);
+        Serial.print(decoderAddress);
+        Serial.print(" Asp ");
+        Serial.print(dccPacket[3],BIN);
+      }
+      printPacket();
+    }
+  }
+  else { // Loc / Multi Function Decoder
+    if (showLoc) {
+      Serial.print(millis());
+      Serial.print(" Loc ");
+      Serial.print(decoderAddress);
+      byte instructionType = instrByte1>>5;
+      switch (instructionType) {
+
+        case 0:
+          Serial.print(" Control ");
+        break;
+
+        case 1: // Advanced Operations
+          if (instrByte1==B00111111) { //128 speed steps
+            if (bitRead(dccPacket[pktByteCount-1],7)) Serial.print(" Forw128 ");
+            else Serial.print(" Rev128 ");
+            byte speed = dccPacket[pktByteCount-1]&B01111111;
+            if (!speed) Serial.print(" Stop ");
+            else if (speed==1) Serial.print(" E-stop ");
+            else Serial.print(speed-1);
+          }
+          else if (instrByte1==B00111110) { //Speed Restriction
+          if (bitRead(dccPacket[pktByteCount-1],7)) Serial.print(" On ");
+            else Serial.print(" Off ");
+            Serial.print(dccPacket[pktByteCount-1])&B01111111;
+          }
+        break;
+
+        case 2: // Reverse speed step
+          speed = ((instrByte1&B00001111)<<1) - 3 + bitRead(instrByte1,4);
+          if (speed==253 || speed==254) Serial.print(" Stop ");
+          else if (speed==255 || speed==0) Serial.print(" E-Stop ");
+          else {
+            Serial.print(" Rev ");
+            Serial.print(speed);
+          }
+        break;
+
+        case 3: // Forward speed step
+          speed = ((instrByte1&B00001111)<<1) - 3 + bitRead(instrByte1,4);
+          if (speed==253 || speed==254) Serial.print(" Stop ");
+          else if (speed==255 || speed==0) Serial.print(" E-Stop ");
+          else {
+            Serial.print(" Forw ");
+            Serial.print(speed);
+          }
+        break;
+
+        case 4: // Loc Function L-4-3-2-1
+          Serial.print(" L F4-F1 ");
+          Serial.print(instrByte1&B00011111,BIN);
+        break;
+
+        case 5: // Loc Function 8-7-6-5
+          if (bitRead(instrByte1,4)) {
+            Serial.print(" F8-F5 ");
+            Serial.print(instrByte1&B00001111,BIN);
+          }
+          else { // Loc Function 12-11-10-9
+            Serial.print(" F12-F9 ");
+            Serial.print(instrByte1&B00001111,BIN);
+          }
+        break;
+
+        case 6: // Future Expansions
+          switch (instrByte1&B00011111) {
+            case 0: // Binary State Control Instruction long form
+              Serial.print(" BinStateLong ");
+              Serial.print(256 * dccPacket[pktByteCount-1] + (dccPacket[pktByteCount-2]&B01111111));
+              if bitRead(dccPacket[pktByteCount-2],7) Serial.print(" On ");
+              else Serial.print(" Off ");
+            break;
+            case B00011101: // Binary State Control
+              Serial.print(" BinStateShort ");
+              Serial.print(dccPacket[pktByteCount-1]&B01111111);
+              if bitRead(dccPacket[pktByteCount-1],7) Serial.print(" On ");
+              else Serial.print(" Off ");
+            break;
+            case B00011110: // F13-F20 Function Control
+              Serial.print(" F20-F13 ");
+              Serial.print(dccPacket[pktByteCount-1],BIN);
+            break;
+            case B00011111: // F21-F28 Function Control
+              Serial.print(" F28-F21 ");
+              Serial.print(dccPacket[pktByteCount-1],BIN);
+            break;
+          }
+        break;
+
+        case 7:
+          Serial.print(" CV ");
+          if (instrByte1&B00010000) { // CV Short Form
+            byte cvType=instrByte1&B00001111;
+            switch (cvType) {
+              case B00000010:
+                Serial.print("23 ");
+                Serial.print(dccPacket[pktByteCount-1]);
+              break;
+              case B00000011:
+                Serial.print("24 ");
+                Serial.print(dccPacket[pktByteCount-1]);
+              break;
+              case B00001001:
+                Serial.print("Decoder Lock ");
+                Serial.print(dccPacket[pktByteCount-1]);
+              break;
+            }
+          }
+          else { // CV Long Form
+            int cvAddress = 256 * (instrByte1&B00000011) + dccPacket[pktByteCount-2] + 1;
+            byte cvMode = (instrByte1&B00001100)>>2;
+            byte cvData = dccPacket[pktByteCount-1];
+            switch (cvMode) {
+              case 1: // Verify Byte
+              case 3: // Write Byte
+                displayCV(cvMode, cvAddress, cvData);
+              break;
+              case 2: // Bit Write
+                if (dccPacket[pktByteCount-2]&B00010000) displayCV(11, cvAddress, cvData); // bit verify
+                else displayCV(11, cvAddress, cvData); // bit write
+              break;
+            }
+          }
+        break;
+      }
+      printPacket();
     }
   }
 }
@@ -505,46 +450,6 @@ void checkUserInput() {
     noInterrupts();            // changed V2: turn off interrupts, otherwise if serial.print last too long the app crashes
     Serial.println(" ");
     switch (Serial.read()) {
-      case 49:
-        Serial.println(F("Refresh Time = 1s"));
-        refreshTime=1;
-      break;
-      case 50:
-        Serial.println(F("Refresh Time = 2s"));
-        refreshTime=2;
-      break;
-      case 51:
-        Serial.println(F("Refresh Time = 4s"));
-        refreshTime=4;
-      break;
-      case 52:
-        Serial.println(F("Refresh Time = 8s"));
-        refreshTime=8;
-      break;
-      case 53:
-        Serial.println(F("Refresh Time = 16s"));
-        refreshTime=16;
-      break;
-      case 54:
-        Serial.println(F("Buffer Size = 4"));
-        packetBufferSize=2;
-      break;
-      case 55:
-        Serial.println(F("Buffer Size = 8"));
-        packetBufferSize=8;
-      break;
-      case 56:
-        Serial.println(F("Buffer Size = 16"));
-        packetBufferSize=16;
-      break;
-      case 57:
-        Serial.println(F("Buffer Size = 32"));
-        packetBufferSize=32;
-      break;
-      case 48:
-        Serial.println(F("Buffer Size = 64"));
-        packetBufferSize=64;
-      break;
       case 97:
         if (showAcc) showAcc=0; else showAcc=1;
         Serial.print(F("show acc packets = "));
