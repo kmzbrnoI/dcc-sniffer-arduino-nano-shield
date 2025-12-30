@@ -307,7 +307,7 @@ dccPacket[6]=B11111111;
     }
     else {
       if (bitRead(dccPacket[1],6)) { //bit7=1 AND bit6=1 -> Loc Decoder Long Address
-        decoderAddress = 256 * (dccPacket[1] & B00000111) + dccPacket[2];
+        decoderAddress = 256 * (dccPacket[1] & B00111111) + dccPacket[2];
         instrByte1 = dccPacket[3];
         decoderType = 0;
       }
