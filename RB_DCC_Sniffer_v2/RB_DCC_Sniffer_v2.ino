@@ -38,7 +38,7 @@
 //
 ////////////////////////////////////////////////////////
 
-byte refreshTime = 4; // Time between DCC packets buffer refreshes in s
+byte refreshTime = 1; // Time between DCC packets buffer refreshes in s
 byte packetBufferSize = 32; // DCC packets buffer size
 
 #define TIMER_PRESCALER 64
@@ -208,7 +208,7 @@ void refreshBuffer() {
 //========================
 
 void setup() {
-  Serial.begin(38400); // 38400 when on DCC, 9600 when testing on 123Circuits !!!!!!!!!!!!!!!!!!!!!!!
+  Serial.begin(115200); // 38400 when on DCC, 9600 when testing on 123Circuits !!!!!!!!!!!!!!!!!!!!!!!
   Serial.println(F("---"));
   Serial.println(F("DCC Packet Analyze V2.0 started"));
   Serial.print(F("Updates every "));
