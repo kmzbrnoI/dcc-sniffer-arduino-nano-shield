@@ -230,16 +230,13 @@ dccPacket[6]=B11111111;
   for (byte n = 1; n <= pktByteCount; n++) checksum ^= dccPacket[n];
   //checksum=0; //Comment this line when on DCC !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if (checksum) {
-    Serial.print(millis());
-    Serial.println(" Invalid checksum!");
+    Serial.println("Invalid checksum!");
     return; // Invalid Checksum
   }
 
   if (dccPacket[1]==B11111111) { //Idle packet
-    if (showIdle) {
-      Serial.print(millis());
-      Serial.println(" Idle ");
-    }
+    if (showIdle)
+      Serial.println("Idle ");
     return;
   }
 
@@ -266,8 +263,7 @@ dccPacket[6]=B11111111;
       if (instrByte1&B10000000) { // Basic Accessory Decoder Packet Format
         decoderAddress = (((~instrByte1)&B01110000)<<2) + decoderAddress;
         byte port = (instrByte1&B00000110)>>1;
-        Serial.print(millis());
-        Serial.print(" Acc ");
+        Serial.print("Acc ");
         Serial.print((decoderAddress-1)*4 + port + 1);
         Serial.print(" ");
         Serial.print(decoderAddress);
@@ -311,8 +307,7 @@ dccPacket[6]=B11111111;
   }
   else { // Loc / Multi Function Decoder
     if (showLoc) {
-      Serial.print(millis());
-      Serial.print(" Loc ");
+      Serial.print("Loc ");
       Serial.print(decoderAddress);
       byte instructionType = instrByte1>>5;
       switch (instructionType) {
